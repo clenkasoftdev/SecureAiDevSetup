@@ -9,7 +9,7 @@ Nothing here is automated on purpose. Each step says what to run, what to expect
 
 | # | Folder / branch | Goal | Run where | Status |
 |---|---|---|---|---|
-| 0 | `00-host-prep` | Firmware update, TPM, BitLocker, supported Windows version | Windows + BIOS/UEFI | In progress |
+| 0 | `00-host-prep` | Firmware update, TPM, BitLocker, supported Windows version | Windows + BIOS/UEFI | Done |
 | 1 | `01-reset` | Back up, remove all existing WSL distros and Docker Desktop, reclaim disk, verify prerequisites | Windows (PowerShell) | Planned |
 | 2 | `02-wsl` | Install a dedicated, hardened Ubuntu distro with rootless Docker Engine | Windows, then inside WSL | Planned |
 | 3 | `03-devcontainer` | Hardened dev container template based on Anthropic's reference (egress firewall, non-root, pinned) | Inside WSL + VS Code | Planned |
