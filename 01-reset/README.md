@@ -256,6 +256,20 @@ Phase 0 covered encryption and updates. This step covers what's left.
   - GitHub → Developer settings → **Tokens**: revoke the old tokens.
   - The same for Azure DevOps and any other service the old distros were signed in to.
 
+- **Windows Git access after retiring keys.** Pushing from Windows needs its own credential. 
+  Either:
+  - **HTTPS:** push once and sign in through the browser. Git Credential Manager stores the login (`git config --get credential.helper` → `manager`).
+  - **SSH:** a new Windows-only key with a passphrase:
+    ```powershell
+    PS> ssh-keygen -t ed25519 -C "<machine>-windows" -f "$env:USERPROFILE\.ssh\id_ed25519_github"
+    PS (Admin)> Get-Service ssh-agent | Set-Service -StartupType Automatic; Start-Service ssh-agent
+    PS> ssh-add "$env:USERPROFILE\.ssh\id_ed25519_github"
+    PS> git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"
+    PS> Get-Content "$env:USERPROFILE\.ssh\id_ed25519_github.pub" | Set-Clipboard   # add on GitHub → SSH and GPG keys
+    PS> ssh -T git@github.com
+    ```
+  Keep this key for Windows only. Phase 2 creates a separate key for WSL.
+
 ## Step 9: Confirm disk space
 
 ```powershell
@@ -324,3 +338,5 @@ Then reboot.
 ### PowerShell
 
 **"A positional parameter cannot be found that accepts argument…".** A pipe `|` at the end of a line was lost when copying. Copy multi-line commands whole, or join them into one line.
+
+**Push fails with 401/403 after revoking tokens.** Git is using the cached, revoked token. Remove it with `cmdkey /delete:git:https://github.com` and push again to sign in.
