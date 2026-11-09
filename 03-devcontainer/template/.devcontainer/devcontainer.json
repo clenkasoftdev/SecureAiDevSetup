@@ -8,7 +8,7 @@
     "args": {
       "TZ": "Europe/Berlin",
       // Pin: look up with  docker run --rm node:24-trixie npm view @anthropic-ai/claude-code version
-      "CLAUDE_CODE_VERSION": "<version>"
+      "CLAUDE_CODE_VERSION": "2.1.319"
     }
   },
 

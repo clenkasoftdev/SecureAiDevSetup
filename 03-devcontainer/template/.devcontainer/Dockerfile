@@ -7,7 +7,7 @@
 #
 # Pin the base image by digest once you've pulled it:
 #   FROM node:24-trixie@sha256:<digest>
-FROM node:24-trixie
+FROM node:24-trixie@sha256:5c6e2e57d7dd6652ce6f087ba0328312059d7c77f93baa8751865dbf103f1acb
 
 ARG TZ=Europe/Berlin
 ENV TZ="$TZ"
@@ -34,6 +34,7 @@ USER node
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
 ENV PATH=$PATH:/usr/local/share/npm-global/bin
 ENV EDITOR=nano VISUAL=nano
+ENV NPM_CONFIG_UPDATE_NOTIFIER=false
 RUN echo 'export PROMPT_COMMAND="history -a"; export HISTFILE=/commandhistory/.bash_history' >> /home/node/.bashrc
 
 # Claude Code, pinned. Fail the build if no version was given.
