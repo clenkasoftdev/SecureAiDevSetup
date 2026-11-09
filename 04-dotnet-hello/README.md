@@ -199,7 +199,7 @@ node $ dotnet test
 
 > **Checkpoint:** `Passed! - Failed: 0, Passed: 2`.
 
-**5e. Commit the baseline** so the next step's changes can be reviewed on their own:
+**5e. Commit the baseline**, so Claude's change in Step 7 can be reviewed on its own:
 
 ```bash
 node $ git add -A
@@ -242,6 +242,8 @@ node $ git add -N .                # let git diff include new files
 node $ git diff --stat
 node $ dotnet test
 ```
+
+`git diff` only covers files Git already tracks. `git add -N` (intent to add) includes new files without staging their content.
 
 > **Checkpoint:** the diff shows the new endpoint and test, and `dotnet test` passes with 3 tests.
 
@@ -305,6 +307,14 @@ Pushing from inside the container uses your WSL key through the forwarded agent.
 **Port 5080 isn't forwarded automatically.** Open the **Ports** panel → **Forward a Port** → `5080`.
 
 **The browser can't connect, although the app runs.** The app must listen on `127.0.0.1` or `localhost` inside the container, as in Step 6. Also check that phase 2's `.wslconfig` still has `localhostForwarding=true`.
+
+### Git
+
+**`git diff --stat` shows nothing, although VS Code lists many changes.** The files are untracked: nothing has been committed yet, and `git diff` ignores untracked files. Use `git status --short`, or commit the baseline first (Step 5e).
+
+**`git push` fails with "src refspec main does not match any".** There's no commit yet, or the branch is called `master`. Check with `git log --oneline -1` and `git branch --show-current`. Commit first, or rename with `git branch -m master main`.
+
+**Commit fails with "Couldn't load public key /home/<user>/.ssh/id_ed25519.pub".** Commit signing points to a key *file*, which isn't in the container. In WSL, run `git config --global user.signingkey "key::$(cat ~/.ssh/id_ed25519.pub)"`, then **Rebuild Container**. Phase 2 Step 8 sets it this way.
 
 ### Tests
 
