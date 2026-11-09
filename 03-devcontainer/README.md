@@ -26,6 +26,8 @@ The template is Anthropic's reference dev container ([anthropics/claude-code `.d
 | No blanket outbound SSH | The reference allowed port 22 to any IP; here SSH reaches only GitHub |
 | All IPv6 outbound blocked | The reference didn't filter IPv6 |
 | Allowlist in its own file, **baked into the image** | Editing it in the workspace changes nothing until you rebuild, so the agent can't widen it itself |
+| CDN-aware: each domain resolved several times, addresses **refreshed every 5 minutes** by a root background process | Hosts behind CDNs (NuGet, npm) change address; the firewall works on addresses, so it keeps up. A refresh swaps in a new address set while the rules stay in place, so it never opens the firewall |
+| Fails **closed** | If setup stops partway, all outbound traffic is blocked rather than left open |
 | MCP connectors from claude.ai off, nonessential traffic off | Fewer outbound channels; no telemetry hosts to allow |
 | Memory, CPU and process limits | A runaway agent can't starve WSL |
 | `updateRemoteUserUID: false` | Keeps `node` at uid 1000, which the workspace permissions (Step 4) depend on |
@@ -287,11 +289,11 @@ Set `EXAMPLE_API_TOKEN` in WSL before opening the container. Use a token scoped 
 
 **Start fails with `ERROR: failed to resolve <domain>`.** That domain doesn't exist (any more), or is misspelled in `allowed-domains.txt`. Fix or remove the line, then **Rebuild Container**.
 
-**Start fails at "Fetching GitHub IP ranges".** GitHub's API was briefly unreachable or rate-limited. Run **Dev Containers: Rebuild Container** or restart the container.
+**Start fails with "firewall setup failed: outbound traffic blocked".** Setup couldn't finish, often because GitHub's API was briefly unreachable or rate-limited, so the firewall closed everything. Restart the container: **Dev Containers: Reopen Folder in WSL**, then **Reopen in Container**.
 
 **Something the project needs is blocked**: `npm install`, `dotnet restore` or `curl` fails with *"Connection refused"*, *"EHOSTUNREACH"* or *"admin prohibited"*. Find the host from the error message, add it to `.devcontainer/allowed-domains.txt`, then **Rebuild Container**. Edits only take effect on rebuild, because the list is baked into the image.
 
-**Allowed sites start failing after hours or days.** CDN addresses change, and the firewall resolves names only at start. Restart the container (Command Palette → **Dev Containers: Reopen Folder in WSL**, then **Reopen in Container**), or run `sudo /usr/local/bin/init-firewall.sh`.
+**An allowed site fails with "Could not connect" or "Network is unreachable".** Its CDN moved to an address the firewall hasn't picked up yet. Addresses refresh every 5 minutes on their own. To refresh now, run `sudo /usr/local/bin/init-firewall.sh`. That's safe to run at any time: it only refreshes the addresses and never opens the firewall.
 
 **VS Code extensions fail to install inside the container.** The error names the download host, often `<publisher>.gallerycdn.vsassets.io`. Add that host to the allowlist and rebuild.
 
