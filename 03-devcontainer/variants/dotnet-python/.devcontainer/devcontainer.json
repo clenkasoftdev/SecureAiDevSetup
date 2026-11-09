@@ -1,0 +1,63 @@
+// Dev container: Claude Code + .NET 10 + Python (uv), behind the egress firewall.
+// The phase 3 template with the .NET and Python + uv recipes applied.
+// Intended for rootless Docker in the hardened "dev" WSL distro (phase 2).
+{
+  "name": "${localWorkspaceFolderBasename}",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "Europe/Berlin",
+      "CLAUDE_CODE_VERSION": "2.1.319",
+      "PYTHON_VERSION": "3.13"
+    }
+  },
+
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW",
+    "--memory=6g",
+    "--cpus=4",
+    "--pids-limit=4096"
+  ],
+
+  "remoteUser": "node",
+  // Keep node at uid 1000: the workspace ACLs (phase 3 Step 4) are granted to that ID.
+  "updateRemoteUserUID": false,
+
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+
+  "mounts": [
+    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+  ],
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "DISABLE_AUTOUPDATER": "1",
+    "ENABLE_CLAUDEAI_MCP_SERVERS": "false",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "ms-dotnettools.csharp",
+        "ms-python.python"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "dotnetAcquisitionExtension.existingDotnetPath": [
+          { "extensionId": "ms-dotnettools.csharp", "path": "/usr/share/dotnet/dotnet" }
+        ]
+      }
+    }
+  },
+
+  // The workspace is owned by the host user, which git inside the container sees as another user
+  "postCreateCommand": "git config --global --add safe.directory /workspace",
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
+  "waitFor": "postStartCommand"
+}

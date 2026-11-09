@@ -14,7 +14,7 @@ Nothing here is automated on purpose. Each step says what to run, what to expect
 | 2 | `02-wsl` | Install a dedicated, hardened Ubuntu distro with rootless Docker Engine | Windows, then inside WSL | Done |
 | 3 | `03-devcontainer` | Hardened dev container template based on Anthropic's reference (egress firewall, non-root, pinned) | Inside WSL + VS Code | Done |
 | 4 | `04-dotnet-hello` | .NET 10 minimal API in the template: end-to-end proof | Inside the dev container | Done |
-| 5 | `05-toolchains` | Recipes for adding .NET, Python + uv, PowerShell and Azure CLI to a repo's dev container | Inside WSL + the dev container | Planned |
+| 5 | `05-toolchains` | Recipes for adding .NET, Python + uv, PowerShell and Azure CLI to a repo's dev container | Inside WSL + the dev container | Done |
 
 Do the phases **in order**. Each one assumes the previous one is complete. Each phase's guide is in its folder's `README.md` once that phase has merged.
 
