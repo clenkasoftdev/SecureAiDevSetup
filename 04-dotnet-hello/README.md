@@ -237,6 +237,8 @@ Ask it, for example:
 Approve its steps as it asks. When it's done:
 
 ```bash
+node $ git status --short          # new files show as ??
+node $ git add -N .                # let git diff include new files
 node $ git diff --stat
 node $ dotnet test
 ```
@@ -249,7 +251,7 @@ This shows the agent working end to end inside the sandbox: editing files, resto
 
 ```bash
 node $ git add -A
-node $ git commit -m "feat: hello minimal API with tests"
+node $ git commit -m "feat: add /time endpoint with test"
 ```
 
 To keep it on GitHub, create an empty repo `dotnet-hello` there, then:
