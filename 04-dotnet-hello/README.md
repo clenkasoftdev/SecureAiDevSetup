@@ -199,6 +199,13 @@ node $ dotnet test
 
 > **Checkpoint:** `Passed! - Failed: 0, Passed: 2`.
 
+**5e. Commit the baseline** so the next step's changes can be reviewed on their own:
+
+```bash
+node $ git add -A
+node $ git commit -m "feat: hello minimal API with tests"
+```
+
 ## Step 6: Run it and open it from Windows
 
 ```bash
@@ -283,7 +290,7 @@ Pushing from inside the container uses your WSL key through the forwarded agent.
 
 **`dotnet add package` or `dotnet restore` fails with "Unable to load the service index" or "Connection refused".**
 - Check that `api.nuget.org` is in `allowed-domains.txt` and that you **rebuilt** after adding it.
-- If it was there and worked earlier, NuGet's CDN addresses changed since the container started. Run `sudo /usr/local/bin/init-firewall.sh`.
+- If it was there, NuGet's CDN moved to an address the firewall hasn't picked up yet. Addresses refresh every 5 minutes; to refresh now, run `sudo /usr/local/bin/init-firewall.sh`.
 
 **Restore needs other hosts** (private feeds, Azure Artifacts). Add each feed's host, for example `pkgs.dev.azure.com`, to `allowed-domains.txt` and rebuild.
 
