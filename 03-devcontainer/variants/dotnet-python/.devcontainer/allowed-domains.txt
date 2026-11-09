@@ -1,0 +1,28 @@
+# Outbound allowlist for this dev container.
+# Baked into the image at build time: edits take effect only after "Rebuild Container",
+# so nothing running in the workspace can widen it on its own.
+# GitHub's IP ranges (web, API, git over HTTPS and SSH) are added automatically.
+# One domain per line. Wildcards are not supported: list each host.
+
+# Claude Code: API, sign-in, token exchange
+api.anthropic.com
+claude.ai
+claude.com
+platform.claude.com
+
+# npm registry: Claude Code installs and Node.js packages
+registry.npmjs.org
+
+# VS Code server and extensions
+marketplace.visualstudio.com
+vscode.blob.core.windows.net
+update.code.visualstudio.com
+
+# NuGet (.NET)
+api.nuget.org
+
+# PyPI (Python)
+pypi.org
+files.pythonhosted.org
+
+# Project-specific domains below (private feeds, APIs the project calls)
