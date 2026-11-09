@@ -12,7 +12,7 @@ Nothing here is automated on purpose. Each step says what to run, what to expect
 | 0 | `00-host-prep` | Firmware update, TPM, BitLocker, supported Windows version | Windows + BIOS/UEFI | Done |
 | 1 | `01-reset` | Back up, remove all existing WSL distros and Docker Desktop, reclaim disk, verify prerequisites | Windows (PowerShell) | Done |
 | 2 | `02-wsl` | Install a dedicated, hardened Ubuntu distro with rootless Docker Engine | Windows, then inside WSL | Done |
-| 3 | `03-devcontainer` | Hardened dev container template based on Anthropic's reference (egress firewall, non-root, pinned) | Inside WSL + VS Code | Planned |
+| 3 | `03-devcontainer` | Hardened dev container template based on Anthropic's reference (egress firewall, non-root, pinned) | Inside WSL + VS Code | Done |
 | 4 | `04-dotnet-hello` | .NET 10 minimal API in the template: end-to-end proof | Inside the dev container | Planned |
 
 Do the phases **in order**. Each one assumes the previous one is complete. Each phase's guide is in its folder's `README.md` once that phase has merged.
