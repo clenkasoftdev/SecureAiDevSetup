@@ -289,9 +289,11 @@ Optionally, use the same key to sign commits, so GitHub shows them as **Verified
 
 ```bash
 $ git config --global gpg.format ssh
-$ git config --global user.signingkey ~/.ssh/id_ed25519.pub
+$ git config --global user.signingkey "key::$(cat ~/.ssh/id_ed25519.pub)"
 $ git config --global commit.gpgsign true
 ```
+
+`key::` stores the public key itself rather than a file path. VS Code copies your Git config into dev containers (phase 3) but not the key file, so a path would break signing there. With `key::`, the forwarded agent signs, in WSL and in the container alike.
 
 For signing, add the key on GitHub a second time, choosing **Key type: Signing Key**.
 
