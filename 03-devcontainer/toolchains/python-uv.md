@@ -4,7 +4,7 @@ uv manages Python versions, virtual environments and packages. Both uv and Pytho
 
 ## Why Python is installed at build time
 
-uv downloads Python builds from GitHub release assets. Those are served from a CDN that isn't covered by GitHub's published IP ranges, so `uv python install` fails behind the firewall. The recipe installs Python during the build, then tells uv never to download Python again.
+The Python version is part of the image, like every other toolchain: pinned, the same for everyone, and nothing downloaded while you work. uv fetches Python builds from GitHub release assets (`.githubusercontent.com`, which the allowlist permits), but the recipe installs it during the build and then tells uv never to download Python again.
 
 ## Pin
 
@@ -79,6 +79,6 @@ node $ uv run python -c "import requests, sys; print(sys.version, requests.__ver
 
 **`uv` asks to download Python, or fails with "No interpreter found".** The project asks for a Python version that isn't installed, for example through `requires-python` or `.python-version`. Change `PYTHON_VERSION` in [D] to match, then rebuild.
 
-**`uv add` fails with a connection error.** Check `pypi.org` and `files.pythonhosted.org` are in the allowlist and the container was rebuilt. If they are, the CDN moved: `sudo /usr/local/bin/init-firewall.sh`.
+**`uv add` fails with a connection error.** Check `pypi.org` and `files.pythonhosted.org` are in the allowlist and the container was rebuilt. `grep 'allowed=0' /var/log/egress-proxy/access.log` shows any name the proxy refused.
 
 **The VS Code Python extension can't find an interpreter.** Run `uv venv` in the project, then Command Palette → **Python: Select Interpreter** → `.venv/bin/python`.

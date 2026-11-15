@@ -47,7 +47,7 @@ management.azure.com
 graph.microsoft.com
 ```
 
-Add the endpoints of the services you work with, for example `<vault>.vault.azure.net` or `<account>.blob.core.windows.net`. List each host: wildcards aren't supported.
+Add the endpoints of the services you work with, for example `<vault>.vault.azure.net` or `<account>.blob.core.windows.net`. Prefer exact hosts: a broad entry such as `.blob.core.windows.net` would allow every storage account in Azure, including other people's.
 
 ## [F] Editor
 

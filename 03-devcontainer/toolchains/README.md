@@ -22,7 +22,7 @@ Each recipe adds one toolchain to a repo's copy of the phase 3 template. A recip
 
 - **Install at build time.** Image builds run before the firewall exists. Everything a toolchain needs, including language versions, goes into the image.
 - **Pin the version.** By digest for images, by exact version for packages.
-- **Allow only what the toolchain fetches while you work**, such as package registries, and nothing it only needs during installation.
+- **Allow only what the toolchain fetches while you work**, such as package registries, and nothing it only needs during installation. Entries are server names: `host.example.com` for one host, `.example.com` for a domain and all its subdomains. Keep wildcards narrow.
 - **No install scripts piped into a shell.**
 - **Turn off telemetry and update checks.** They would be blocked anyway, and they slow the tools down while they wait.
 

@@ -16,7 +16,7 @@ ARG CLAUDE_CODE_VERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl git less procps sudo fzf man-db unzip gnupg2 nano jq \
-      openssh-client iptables ipset iproute2 dnsutils aggregate \
+      openssh-client iptables ipset iproute2 dnsutils aggregate nginx libnginx-mod-stream \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # npm global packages in a folder the node user owns
