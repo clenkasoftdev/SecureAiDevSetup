@@ -283,7 +283,7 @@ $ source ~/.bashrc                                                          # as
 $ cat ~/.ssh/id_ed25519.pub
 ```
 
-Add the public key on GitHub → Settings → **SSH and GPG keys** → **New SSH key**, titled for example "afric-imp WSL dev".
+Add the public key on GitHub → Settings → **SSH and GPG keys** → **New SSH key**, titled for example "<machine> WSL dev".
 
 Optionally, use the same key to sign commits, so GitHub shows them as **Verified**:
 
