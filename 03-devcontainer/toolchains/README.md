@@ -17,6 +17,7 @@ Each recipe adds one toolchain to a repo's copy of the phase 3 template. A recip
 | [Python + uv](python-uv.md) | uv and a Python version | uv's container image, by digest; Python by uv at build time |
 | [PowerShell](powershell.md) | PowerShell 7.6 LTS | Microsoft's Debian 13 package repository, pinned version |
 | [Azure CLI](azure-cli.md) | `az` | Microsoft's Azure CLI repository (Debian 12 package), pinned version |
+| [Azure DevOps](azure-devops.md) | Git over HTTPS with short-lived Entra tokens; optional `az devops` | A small credential helper ([`git-credential-azdo`](git-credential-azdo)); requires the Azure CLI recipe |
 
 ## Rules every recipe follows
 
