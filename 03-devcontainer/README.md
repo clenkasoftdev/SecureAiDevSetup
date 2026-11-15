@@ -13,7 +13,7 @@ The template is Anthropic's reference dev container ([anthropics/claude-code `.d
 | Kept from the reference | Why |
 |---|---|
 | Claude Code runs as the non-root user `node` | `--dangerously-skip-permissions` refuses root, and a non-root agent can't change the firewall |
-| In-container firewall (`iptables` + `ipset`), started at every container start | Outbound traffic goes only to listed destinations, so a prompt-injected agent has nowhere to send data |
+| In-container firewall, started at every container start | Outbound traffic goes only to listed destinations, so a prompt-injected agent has nowhere to send data |
 | `node` may run only the firewall script with `sudo` | It can re-apply the firewall, nothing else as root |
 | Per-repo volumes for Claude's config and shell history | Sign-in survives rebuilds; repos don't share Claude state |
 
@@ -26,8 +26,13 @@ The template is Anthropic's reference dev container ([anthropics/claude-code `.d
 | No blanket outbound SSH | The reference allowed port 22 to any IP; here SSH reaches only GitHub |
 | All IPv6 outbound blocked | The reference didn't filter IPv6 |
 | Allowlist in its own file, **baked into the image** | Editing it in the workspace changes nothing until you rebuild, so the agent can't widen it itself |
-| CDN-aware: each domain resolved several times, addresses **refreshed every 5 minutes** by a root background process | Hosts behind CDNs (NuGet, npm) change address; the firewall works on addresses, so it keeps up. A refresh swaps in a new address set while the rules stay in place, so it never opens the firewall |
-| Fails **closed** | If setup stops partway, all outbound traffic is blocked rather than left open |
+| HTTPS filtered by **server name (SNI)**, not by IP address | All HTTPS is redirected to a local proxy (nginx `stream` with `ssl_preread`) that reads the server name from the TLS handshake and lets through only allowlisted names. The reference resolved names to IP addresses once at start, which broke whenever a CDN moved (NuGet, PyPI), and let in any other site sharing those addresses |
+| The proxy connects to the **name**, not to the address the client asked for | A process can't announce an allowed name and aim the connection at another server |
+| Only the proxy's own user (`egress`) may open outbound HTTPS | Nothing in the container can go around the proxy; `node` can't stop it or become that user |
+| No TLS decryption | The proxy only reads the plaintext server name: no certificates to install, no content seen |
+| Wildcards: `.example.com` matches the domain and all subdomains | CDN-style hosts (`.gallerycdn.vsassets.io`, `.githubusercontent.com`) work without listing every subdomain |
+| DNS also works on Docker compose networks | Docker's embedded resolver forwards queries from inside the container; the firewall allows exactly the upstream servers Docker records |
+| Fails **closed** | If setup stops partway, or the proxy stops, outbound traffic is blocked rather than left open |
 | MCP connectors from claude.ai off, nonessential traffic off | Fewer outbound channels; no telemetry hosts to allow |
 | Memory, CPU and process limits | A runaway agent can't starve WSL |
 | `updateRemoteUserUID: false` | Keeps `node` at uid 1000, which the workspace permissions (Step 4) depend on |
@@ -41,7 +46,7 @@ The template is Anthropic's reference dev container ([anthropics/claude-code `.d
 ├─ devcontainer.json     container settings, limits, volumes, lifecycle commands
 ├─ Dockerfile            image: Node 24, tools, pinned Claude Code, firewall
 ├─ init-firewall.sh      the egress firewall (runs at every start)
-└─ allowed-domains.txt   outbound allowlist, per repo
+└─ allowed-domains.txt   outbound HTTPS allowlist (server names), per repo
 ```
 
 ## Steps
@@ -135,7 +140,7 @@ $ setfacl -R -m u:$SUB:rwX,d:u:$SUB:rwX,u:$USER:rwX,d:u:$USER:rwX ~/src/devconta
 
 1. In VS Code (connected to **WSL: dev**): **File → Open Folder** → `/home/<user>/src/devcontainer-test`.
 2. Command Palette → **Dev Containers: Reopen in Container**.
-3. The first build takes a few minutes. Click **Show Log** in the notification to follow it. Near the end, the firewall prints `Allowed …` for each domain and finishes with **Firewall verification passed**.
+3. The first build takes a few minutes. Click **Show Log** in the notification to follow it. Near the end, the firewall prints `Allowlist: N entries` and `SNI proxy running on 127.0.0.1:8443`, and finishes with **Firewall verification passed**.
 
 > **Checkpoint:** the bottom-left corner shows **Dev Container: devcontainer-test**.
 
@@ -219,9 +224,10 @@ Treat a change to `.devcontainer/` made by the agent like any other code change:
 | Protected | Not protected |
 |---|---|
 | Sending data to arbitrary servers | Data sent to an **allowed** destination: anything the agent can read could be pushed to a GitHub repo it can reach, or a gist. Use repo-scoped tokens, and don't put long-lived secrets in the workspace. |
-| Reading your other repos, WSL home, Windows files | Destinations sharing an allowed IP. The allowlist works on IP addresses, and CDN-hosted domains share IPs with other sites. |
+| Reading your other repos, WSL home, Windows files | **Domain fronting:** a client announces an allowed name, then asks the CDN behind it for a different site inside the encrypted connection. Only TLS interception sees that, and this design deliberately doesn't decrypt. |
 | Running as root, changing the firewall | Data encoded into DNS lookups through the allowed resolvers. Blocking that needs a filtering DNS proxy. |
 | Starving the machine | Mistakes in the repo itself: the agent can edit anything in `/workspace`, including `.git/hooks`. |
+| Other sites behind an allowed site's CDN address: filtered by name, not address | — |
 
 ## Adding MCP servers
 
@@ -287,15 +293,23 @@ Set `EXAMPLE_API_TOKEN` in WSL before opening the container. Use a token scoped 
 
 ### Firewall
 
-**Start fails with `ERROR: failed to resolve <domain>`.** That domain doesn't exist (any more), or is misspelled in `allowed-domains.txt`. Fix or remove the line, then **Rebuild Container**.
+**Start fails with `ERROR: invalid allowlist entry`.** A line in `allowed-domains.txt` isn't a plain host name. Use `api.example.com` for one host, or `.example.com` for a domain and all its subdomains; no `https://`, paths or ports. Fix it, then **Rebuild Container**.
 
 **Start fails with "firewall setup failed: outbound traffic blocked".** Setup couldn't finish, often because GitHub's API was briefly unreachable or rate-limited, so the firewall closed everything. Restart the container: **Dev Containers: Reopen Folder in WSL**, then **Reopen in Container**.
 
-**Something the project needs is blocked**: `npm install`, `dotnet restore` or `curl` fails with *"Connection refused"*, *"EHOSTUNREACH"* or *"admin prohibited"*. Find the host from the error message, add it to `.devcontainer/allowed-domains.txt`, then **Rebuild Container**. Edits only take effect on rebuild, because the list is baked into the image.
+**Something the project needs is blocked**: `npm install`, `dotnet restore` or `curl` fails with an SSL or connection error. See which names the proxy refused:
 
-**An allowed site fails with "Could not connect" or "Network is unreachable".** Its CDN moved to an address the firewall hasn't picked up yet. Addresses refresh every 5 minutes on their own. To refresh now, run `sudo /usr/local/bin/init-firewall.sh`. That's safe to run at any time: it only refreshes the addresses and never opens the firewall.
+```bash
+node $ grep 'allowed=0' /var/log/egress-proxy/access.log | tail
+```
 
-**VS Code extensions fail to install inside the container.** The error names the download host, often `<publisher>.gallerycdn.vsassets.io`. Add that host to the allowlist and rebuild.
+Add the name to `.devcontainer/allowed-domains.txt`, then **Rebuild Container**. Edits only take effect on rebuild, because the list is baked into the image.
+
+**Every HTTPS request fails, including allowed names.** The proxy isn't running. A background check restarts it within 5 minutes; to restart it now, run `sudo /usr/local/bin/init-firewall.sh`. That's safe at any time: it never opens the firewall. If it keeps stopping, look at `/var/log/egress-proxy/error.log`.
+
+**A tool uses plain HTTP (port 80) or another port.** Only HTTPS on port 443 goes through the name filter. Everything else is blocked, except SSH to GitHub. Switch the tool to HTTPS; almost every registry supports it.
+
+**VS Code extensions fail to install inside the container.** Check the access log as above for the refused name, add it to the allowlist, and rebuild. `.gallerycdn.vsassets.io` is already allowed.
 
 ### Workspace permissions
 

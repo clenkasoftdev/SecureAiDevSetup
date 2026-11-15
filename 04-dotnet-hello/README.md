@@ -294,7 +294,7 @@ Pushing from inside the container uses your WSL key through the forwarded agent.
 
 **`dotnet add package` or `dotnet restore` fails with "Unable to load the service index" or "Connection refused".**
 - Check that `api.nuget.org` is in `allowed-domains.txt` and that you **rebuilt** after adding it.
-- If it was there, NuGet's CDN moved to an address the firewall hasn't picked up yet. Addresses refresh every 5 minutes; to refresh now, run `sudo /usr/local/bin/init-firewall.sh`.
+- If it was there, check which names the proxy refused: `grep 'allowed=0' /var/log/egress-proxy/access.log | tail`. NuGet sometimes redirects to further hosts, for example for package signatures; add any refused NuGet host and rebuild.
 
 **Restore needs other hosts** (private feeds, Azure Artifacts). Add each feed's host, for example `pkgs.dev.azure.com`, to `allowed-domains.txt` and rebuild.
 

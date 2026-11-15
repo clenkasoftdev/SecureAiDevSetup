@@ -161,7 +161,7 @@ For other combinations, start from `template/.devcontainer/` and apply the recip
 
 **`uv` says no matching Python and downloads are disabled.** The project's `requires-python` or `.python-version` asks for a version that isn't installed. Set `PYTHON_VERSION` in `devcontainer.json` to match, then **Rebuild Container**.
 
-**`uv add` fails to connect.** Check `pypi.org` and `files.pythonhosted.org` are in `allowed-domains.txt` and the container was rebuilt. If they are, the CDN moved: run `sudo /usr/local/bin/init-firewall.sh`.
+**`uv add` fails to connect.** Check `pypi.org` and `files.pythonhosted.org` are in `allowed-domains.txt` and the container was rebuilt. `grep 'allowed=0' /var/log/egress-proxy/access.log` shows any name the proxy refused.
 
 **The Python extension doesn't find the environment.** In the project folder, run `uv sync` (or `uv venv`), then Command Palette → **Python: Select Interpreter** → `.venv/bin/python`.
 

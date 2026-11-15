@@ -18,7 +18,7 @@ ARG CLAUDE_CODE_VERSION
 # [B] libicu76 for .NET
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl git less procps sudo fzf man-db unzip gnupg2 nano jq \
-      openssh-client iptables ipset iproute2 dnsutils aggregate libicu76 \
+      openssh-client iptables ipset iproute2 dnsutils aggregate nginx libnginx-mod-stream libicu76 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # npm global packages in a folder the node user owns
@@ -57,6 +57,9 @@ ENV DOTNET_ROOT=/usr/share/dotnet \
 
 # [C] uv
 COPY --from=uv /uv /uvx /usr/local/bin/
+
+RUN useradd --system --no-create-home --shell /usr/sbin/nologin egress \
+    && mkdir -p /etc/egress-proxy
 
 # Firewall: script and allowlist owned by root; node may run only this script as root
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh

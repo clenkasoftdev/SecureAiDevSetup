@@ -1,8 +1,14 @@
-# Outbound allowlist for this dev container.
+# Outbound HTTPS allowlist for this dev container, matched against the TLS server name (SNI).
 # Baked into the image at build time: edits take effect only after "Rebuild Container",
 # so nothing running in the workspace can widen it on its own.
-# GitHub's IP ranges (web, API, git over HTTPS and SSH) are added automatically.
-# One domain per line. Wildcards are not supported: list each host.
+# One entry per line:
+#   api.example.com    exactly that name
+#   .example.com       example.com and every subdomain
+# SSH to GitHub (git@github.com) is allowed separately, by GitHub's published IP ranges.
+
+# GitHub: web, API, git over HTTPS, raw files, release downloads
+.github.com
+.githubusercontent.com
 
 # Claude Code: API, sign-in, token exchange
 api.anthropic.com
@@ -15,6 +21,7 @@ registry.npmjs.org
 
 # VS Code server and extensions
 marketplace.visualstudio.com
+.gallerycdn.vsassets.io
 vscode.blob.core.windows.net
 update.code.visualstudio.com
 
