@@ -34,6 +34,7 @@ The template is Anthropic's reference dev container ([anthropics/claude-code `.d
 | DNS also works on Docker compose networks | Docker's embedded resolver forwards queries from inside the container; the firewall allows exactly the upstream servers Docker records |
 | Fails **closed** | If setup stops partway, or the proxy stops, outbound traffic is blocked rather than left open |
 | MCP connectors from claude.ai off, nonessential traffic off | Fewer outbound channels; no telemetry hosts to allow |
+| VS Code's Git credential forwarding off | Otherwise any process in the container can ask VS Code for stored Git credentials for any host, and Git hands every successful login back out for storage. GitHub uses the forwarded SSH agent instead; Azure DevOps uses its own helper (toolchains recipe) |
 | Memory, CPU and process limits | A runaway agent can't starve WSL |
 | `updateRemoteUserUID: false` | Keeps `node` at uid 1000, which the workspace permissions (Step 4) depend on |
 
@@ -138,6 +139,11 @@ $ setfacl -R -m u:$SUB:rwX,d:u:$SUB:rwX,u:$USER:rwX,d:u:$USER:rwX ~/src/devconta
 
 ## Step 5: Open the repo in the container
 
+0. **Once per machine:** turn off VS Code's Git credential forwarding. In VS Code on Windows, Command Palette → **Preferences: Open User Settings (JSON)**, add:
+   ```jsonc
+   "dev.containers.gitCredentialHelperConfigLocation": "none"
+   ```
+   The container then has no way to ask VS Code for Git credentials. GitHub keeps working through the forwarded SSH agent.
 1. In VS Code (connected to **WSL: dev**): **File → Open Folder** → `/home/<user>/src/devcontainer-test`.
 2. Command Palette → **Dev Containers: Reopen in Container**.
 3. The first build takes a few minutes. Click **Show Log** in the notification to follow it. Near the end, the firewall prints `Allowlist: N entries` and `SNI proxy running on 127.0.0.1:8443`, and finishes with **Firewall verification passed**.
@@ -157,6 +163,7 @@ node $ sudo id                                            # refused: password pr
 node $ ssh -T git@github.com                              # "Hi <you>! …" (key forwarded from WSL)
 node $ claude --version                                   # the pinned version
 node $ touch /workspace/from-container && git status      # works, shows the new file
+node $ git config --get-all credential.helper             # nothing: no VS Code credential forwarding
 ```
 
 Then, in a **WSL** terminal outside the container:
