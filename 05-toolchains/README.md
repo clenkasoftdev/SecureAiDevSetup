@@ -1,6 +1,6 @@
 # Phase 5: Toolchains in the dev container
 
-**Goal:** dev containers for real projects. A ready-made **.NET + Python (uv)** variant, plus recipes for adding .NET, Python + uv, PowerShell and Azure CLI to any repo's container.
+**Goal:** dev containers for real projects. A ready-made **.NET + Python (uv)** variant, plus recipes for adding .NET, Python + uv, PowerShell, Azure CLI and Azure DevOps to any repo's container.
 
 **Time:** 30–45 minutes for the .NET + Python variant.
 **Run where:** the `dev` distro (`$`), VS Code, and the dev container terminal (`node $`).
@@ -16,7 +16,9 @@
 │  ├─ dotnet.md
 │  ├─ python-uv.md
 │  ├─ powershell.md
-│  └─ azure-cli.md
+│  ├─ azure-cli.md
+│  ├─ azure-devops.md
+│  └─ git-credential-azdo            credential helper for azure-devops.md
 └─ variants/dotnet-python/.devcontainer/   template + .NET + Python (uv), ready to copy
 ```
 
